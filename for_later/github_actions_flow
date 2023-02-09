@@ -1,0 +1,48 @@
+name: Airflow DAG Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  OWNER: airflow
+  DEPENDS_ON_PAST: false
+  START_DATE: 2022-02-06
+  COLOR: green
+  YEAR: 2020
+  MONTH: 1
+  RETRIES: 3
+  RETRY_DELAY: 300
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Run script
+      run: |
+        source venv/bin/activate
+        python my_script.py \
+          --owner ${{ env.OWNER }} \
+          --depends_on_past ${{ env.DEPENDS_ON_PAST }} \
+          --start_date ${{ env.START_DATE }} \
+          --color ${{ env.COLOR }} \
+          --year ${{ env.YEAR }} \
+          --month ${{ env.MONTH }} \
+          --retries ${{ env.RETRIES }} \
+          --retry_delay ${{ env.RETRY_DELAY }}

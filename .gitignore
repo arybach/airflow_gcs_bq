@@ -1,0 +1,6 @@
+./airflow/files
+./airflow/files/
+./airflow/logs
+./airflow/logs/
+./secrets
+./secrets/

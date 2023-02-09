@@ -1,0 +1,6 @@
+google.cloud
+apache-airflow-providers-google
+apache-airflow[gcp]
+apache-airflow[google]
+datetime
+pandas

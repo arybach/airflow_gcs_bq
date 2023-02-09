@@ -1,0 +1,12 @@
+{
+    "type": "service_account",
+    "project_id": "gcpzoomcamp",
+    "private_key_id": "e7103c62388a72b6370057786dd9d24346bdc625",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCGPf8b98tQ9gUe\n+a7vC99/y8l3j3/j+QuITa9ARIF7BYbg0oVUbg41HBmM10eH2CFVu5I8rprfhjpK\n3KOAUCFYKfflXEZq6ceHXnJl91gQyyBu9a3iJdIysQsT/WJkEqZmir0PuMqCwpiH\npf966OkweSiocGatfW42SJ3TPkaq6g6RULS3pjnKJIW3zpm6zSyaZXgMsBU0NAUg\n52TjIqR+6bBr19534IU+d3OYqrAbIgLXc4PrxACtQEi6y+3h+QYQsoOSrbZFpOd3\nYuK81mjLGXYR5mpI5BzKd38wfSkq13GeOHBD5evV5eVH03aZThLSEJ1rPzmT+3SA\nl9kXTglZAgMBAAECggEAFb11kpxzL1XgZ29NLsZv+BzTMEsrjYp4HSdjkddmVruC\n5+cAE7fNEjnOQ3pbybqtT1qUqMIoL7nnt9b6nZ2cgNAvJtRmTQs2NoyLn0rK1tFm\nm8Gq2tyAKZh1cFPROt6wVxvx2Vl2Zm3IUPOHp+qPVTvR41Fst30AO8dP0/WacTRB\ngj1Hfa1lq8s8Ssrh7vX+0AVdBaSS5SrAbB+1KeXtFc07B4tUqrS1pwJZCESgbD6k\njC5bSQebrCI4YK4m7uKcq9IWvaM67rf5AiBpgdS5+YfmJwHc0fo4gzrw/2tEbl+c\nXvgK5mWkV4Rn89hjwj7nNkNdWGm2QPquFpTRog+GxwKBgQC7lfw6ZOOiuOMt89w1\nZNktJb++OKI9Hjve34MDpTOB5HC4WD74WxrZsKJBYitkx5zBMA7I8/pXw8qCfhzU\n/NFDPZa+c7Eb3zWPsj/y/onF4NPSApzzhVrhDOnBMrXxIxNd5bL/elucEUyDuWAi\n3YkbWGNAY1xMgcGOoj8O1I6pGwKBgQC3M48xZZax6JpVE0k+UGIQXRDLZldG9e8j\nbJ/djhVduohizUpJNZ50PbesB37CTWeLnFlGKAr1366QrjSA43pV07SIscVj5tdb\nGKSB0lZvExYkyqcK4L6iwlShzFNJ41G6rdaMSSjMwVAUmEVvk7a/tJCcBrDruliB\nPqYpn3lSmwKBgEbdVFni/zPb0MbtVwU8weaSWitMTc30+/0oRuA7qoepewPJIpDE\nKhKO7dzxbx81YXyB4TP9J1e8eWZuqgm0MIHMZIQyRHgZDKzqU8pCal28n4i4v/4n\nJLvcGvqHY8Bi1dAlFEf7O1xsFJG2mCDTvBX+gBA0+QtWAX8Wv+ekWPh9AoGAETyC\nnm0mbnqp+pMj8v7xGwUGjXyFfaGp7DVOHTQ/AmCIcHNMJ/Mpg1pDK6ZQ4MsTkOkW\n5SjjTxrKe8ZIHlBItEaE18+R+MJBRMrev3AgvbaYAMIoUTev9/Q8rjRhKbR/fgbZ\nBr3jXtBZTna9IbBOI19Ds8pVXvhbV12jmIruiT0CgYEAisc2bX9UqCGhSB3nUHfk\nsFY6gzzw/03db7jN2aOkR7agpQbEmWoHNnsuGnvmBKRdG1fHchM6Op6HActEKsGH\nS7VEnu6RVcOZZcAmq5Wc4XJAsYMfc2Ks6P6ednZUoKHlQknOxhAgElImjFoEwlOB\nWuirqv8sLUzQxsUkMG05p24=\n-----END PRIVATE KEY-----\n",
+    "client_email": "airflow@gcpzoomcamp.iam.gserviceaccount.com",
+    "client_id": "104781340092636269196",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/airflow%40gcpzoomcamp.iam.gserviceaccount.com"
+  }
