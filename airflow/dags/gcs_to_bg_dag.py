@@ -85,10 +85,11 @@ create_table = BigQueryCreateEmptyTableOperator(
 def load_preped_parquet_to_bq():
         df = pd.read_parquet('/opt/bitnami/airflow/tmp/' + objectid)
         # not needed, but lets prep 
-        print(f"pre: missing passenger count: {df['passenger_count'].isna().sum()}")
-        df["passenger_count"].fillna(0, inplace=True)
-        print(f"post: missing passenger count: {df['passenger_count'].isna().sum()}")
-        
+        # print(f"pre: missing passenger count: {df['passenger_count'].isna().sum()}")
+        # df["passenger_count"].fillna(0, inplace=True)
+        # print(f"post: missing passenger count: {df['passenger_count'].isna().sum()}")
+        print(f"dataset rows total: {len(df)}")
+
         df.to_gbq(destination_table=f'{datasetid}.{datatable}',
                   if_exists = 'replace', # append
                   project_id = projectid)

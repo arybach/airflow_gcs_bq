@@ -3,4 +3,6 @@
 ./airflow/logs
 ./airflow/logs/
 ./secrets
-./secrets/
+./secrets/key-file.json
+./airflow/dags/__pycache___
+./airflow/dags/__pycache___/*
