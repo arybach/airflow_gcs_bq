@@ -7,6 +7,8 @@ echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env
 sudo chown -R 1001:1001 ./dags
 sudo chown -R $AIRFLOW_UID:$AIRFLOW_GID /airflow
 
+-- key-file.json will be needed to update google_cloud_conn in Airflow
+
 -- set in .env file if needed
 _AIRFLOW_WWW_USER_USERNAME=gcpzoomcamp
 _AIRFLOW_WWW_USER_PASSWORD=gcpzoomcamp

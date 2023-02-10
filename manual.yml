@@ -1,0 +1,53 @@
+name: Airflow DAG URL-GCS-BQ
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  COLOR: green
+  YEAR: 2020
+  MONTH: 1
+  PROJECTID: gcpzoomcamp # GCP projectid - also used as a bucket name here
+  OBJECTID: green_tripdata_2020-01.parquet # filename in the bucket
+  DATASETID: green_taxi # dataset name within gcpzoomcamp dataset (location = asia-east1)
+  DATATABLE: trip_data # table name to be created / partioned data will be in f"{DATATABLE}_partitioned table"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    
+    # Airflow installs -r requirements.txt on every run
+    # - name: Install dependencies
+    #   run: |
+    #     python -m venv venv
+    #     source venv/bin/activate
+    #     pip install -r requirements.txt
+
+    - name: File to gcs
+    # python url_to_gcs_dag.py --color 'green' --year 2020 --month 1
+      run: |
+        source venv/bin/activate
+        python url_to_gcs_dag.py \
+          --color ${{ env.COLOR }} \
+          --year ${{ env.YEAR }} \
+          --month ${{ env.MONTH }}
+    - name: Gcs to bq
+    # python gcs_to_bq_dag.py --projectid 'gcpzoomcamp' --objectid 'green_tripdata_2020-01.parquet' --datasetid 'green_taxi' --datatable 'trip_data' 
+      run: |
+        source venv/bin/activate
+        python url_to_gcs_dag.py \
+          --projectid ${{ env.PROJECTID }} \
+          --objectid ${{ env.OBJECTID }} \
+          --datasetid ${{ env.DATASETID }} \
+          --datatable ${{ env.DATATABLE }}
