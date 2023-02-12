@@ -1,6 +1,6 @@
 // use proper service account credentials
 $ gcloud auth list
-$ gcloud config set account airflow@gcpzoomcamp.iam.gserviceaccount.com
+$ gcloud config set account airflow...
 
 curl -sSL https://raw.githubusercontent.com/bitnami/containers/main/bitnami/airflow/docker-compose.yml > docker-compose.yml
 docker-compose up -d
@@ -13,8 +13,8 @@ sudo chown -R $AIRFLOW_UID:$AIRFLOW_GID /airflow
 
 // key-file.json will be needed to update google_cloud_conn in
 // set in .env file if needed
-_AIRFLOW_WWW_USER_USERNAME=gcpzoomcamp
-_AIRFLOW_WWW_USER_PASSWORD=gcpzoomcamp
+_AIRFLOW_WWW_USER_USERNAME=...
+_AIRFLOW_WWW_USER_PASSWORD=...
 AIRFLOW_PROJ_DIR=/home/groot/gcpzoomcamp/airflow
 
 pip install apache-airflow[gcp] 
