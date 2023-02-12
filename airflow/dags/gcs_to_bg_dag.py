@@ -7,20 +7,7 @@ from airflow.contrib.operators.bigquery_operator import BigQueryOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyTableOperator
 #from airflow.contrib.hooks.bigquery_hook import BigQueryHook
 from datetime import datetime, timedelta
-import argparse
-
-parser = argparse.ArgumentParser()
-# python gcs_to_bq_dag.py --projectid 'projectid' --objectid 'objectid' --datasetid 'datasetid' --datatable 'datatable' 
-parser.add_argument('--projectid', type=str, required=False)
-parser.add_argument('--objectid', type=str, required=False)
-parser.add_argument('--datasetid', type=str, required=False)
-parser.add_argument('--datatable', type=str, required=False)
-args = parser.parse_args()
-
-if not args.projectid: projectid = 'gcpzoomcamp' else: projectid = args.projectid 
-if not args.objectid: objectid = 'green_tripdata_2020-01.parquet' else: objectid = args.objectid
-if not args.datasettid: datasetid = 'green_taxi' else: datasetid = args.datasetid
-if not args.datatable: datatable = 'trip_data' else: datatable = args.datatable
+from airflow.models import Variable
 
 yesterday = datetime.combine(datetime.today() - timedelta(days=1), datetime.min.time())
 timestamp_str = yesterday.strftime('%Y-%m-%dT%H:%M:%S') # for sql timestamp 
@@ -29,7 +16,10 @@ default_args = {
     'owner': 'groot',
     'depends_on_past': False,
     'start_date': yesterday,
-    'email': ['mats.tumblebuns@gmail.com'],
+    'projectid': Variable.get('projectid'),
+    'objectid': Variable.get('objectid'),
+    'datasetid': Variable.get('datasetid'),
+    'datatable': Variable.get('datatable'),
     'email_on_failure': True,
     'email_on_retry': False,
     'retries': 0,
@@ -39,15 +29,15 @@ default_args = {
 dag = DAG(
     'download_from_gcs_upload_to_bq',
     default_args=default_args,
-    description=f'Retrieve {objectid} from GCS and load into BigQuery',
+    description=f"Retrieve {default_args.get('objectid')} from GCS and load into BigQuery",
     schedule_interval=timedelta(hours=24),
 )
 
 download_data = GCSToLocalFilesystemOperator(
     task_id = 'download_data',
-    bucket = projectid,
-    object_name = objectid,
-    filename='/opt/bitnami/airflow/tmp/' + objectid,
+    bucket = default_args.get('projectid'),
+    object_name = default_args.get('objectid'),
+    filename='/opt/bitnami/airflow/tmp/' + default_args.get('objectid'),
     dag=dag
     # google_cloud_storage_conn_id='google_conn_default' - is used by default
 )
@@ -57,8 +47,8 @@ download_data = GCSToLocalFilesystemOperator(
 
 create_table = BigQueryCreateEmptyTableOperator(
     task_id = "create_table",
-    dataset_id = datasetid,
-    table_id = datatable,
+    dataset_id = default_args.get('datasetid'),
+    table_id = default_args.get('datatable'),
     table_resource = {"location": 'asia-east1'},
     schema_fields = [ 
           {"name": "VendorID", "type": "INT64", "mode": "REQUIRED"},
@@ -83,16 +73,16 @@ create_table = BigQueryCreateEmptyTableOperator(
 )
 
 def load_preped_parquet_to_bq():
-        df = pd.read_parquet('/opt/bitnami/airflow/tmp/' + objectid)
+        df = pd.read_parquet('/opt/bitnami/airflow/tmp/' + default_args.get('objectid'))
         # not needed, but lets prep 
         # print(f"pre: missing passenger count: {df['passenger_count'].isna().sum()}")
         # df["passenger_count"].fillna(0, inplace=True)
         # print(f"post: missing passenger count: {df['passenger_count'].isna().sum()}")
         print(f"dataset rows total: {len(df)}")
 
-        df.to_gbq(destination_table=f'{datasetid}.{datatable}',
+        df.to_gbq(destination_table=f"{default_args.get('datasetid')}.{default_args.get('datatable')}",
                   if_exists = 'replace', # append
-                  project_id = projectid)
+                  project_id = default_args.get('projectid'))
 
 upload_data = PythonOperator(
     task_id = 'upload_data',
@@ -102,14 +92,14 @@ upload_data = PythonOperator(
 
 add_column_ds = BigQueryOperator(
     task_id = 'add_column_ds',
-    sql = f'''ALTER TABLE '{datasetid}.{datatable}' ADD COLUMN ds DATE''',
+    sql = f'''ALTER TABLE {default_args.get('datasetid')}.{default_args.get('datatable')} ADD COLUMN ds DATE''',
     use_legacy_sql = False,
     dag = dag
 )
 
 set_default_ds = BigQueryOperator(
     task_id = 'set_default_ds',
-    sql = f'''ALTER TABLE '{datasetid}.{datatable}' ALTER COLUMN ds SET DEFAULT CURRENT_DATE()''',
+    sql = f'''ALTER TABLE {default_args.get('datasetid')}.{default_args.get('datatable')} ALTER COLUMN ds SET DEFAULT CURRENT_DATE()''',
     use_legacy_sql = False,
     dag = dag,
     trigger_rule = 'all_done'
@@ -117,7 +107,7 @@ set_default_ds = BigQueryOperator(
 
 update_ds = BigQueryOperator(
     task_id = 'update_ds',
-    sql = f'''UPDATE '{datasetid}.{datatable}' SET ds = CURRENT_DATE() WHERE TRUE''',
+    sql = f'''UPDATE {default_args.get('datasetid')}.{default_args.get('datatable')} SET ds = CURRENT_DATE() WHERE TRUE''',
     use_legacy_sql = False,
     dag = dag,
     trigger_rule = 'all_done'
@@ -125,8 +115,8 @@ update_ds = BigQueryOperator(
 
 partition_table = BigQueryOperator(
     task_id = 'partition_table',
-    sql = f'''SELECT * FROM '{datasetid}.{datatable}'''',
-    destination_dataset_table = f'{datasetid}.{datatable}'+'_partitioned',
+    sql = f"SELECT * FROM {default_args.get('datasetid')}.{default_args.get('datatable')}",
+    destination_dataset_table = f"{default_args.get('datasetid')}.{default_args.get('datatable')}_partitioned",
     write_disposition = 'WRITE_TRUNCATE',
     time_partitioning = {
         'field': 'ds',

@@ -9,39 +9,32 @@ from airflow.contrib.hooks.gcs_hook import GoogleCloudStorageHook
 # from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyDatasetOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 #from airflow.contrib.operators.gcs_to_local_operator import LocalFilesystemToGCSOperator
+from airflow.models import Variable
 
 import requests
 import pandas as pd
 import os
 from datetime import datetime, timedelta
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--color', type=str, required=False)
-parser.add_argument('--year', type=int, required=False)
-parser.add_argument('--month', type=int, required=False)
-args = parser.parse_args()
 
 # python url_to_gcs_dag.py --color 'green' --year 2020 --month 1 
-if not args.color: color = 'green' else: color = args.color
-if not args.year: year = 2020 else: year = args.year
-if not args.month: month = 1 else: month = args.month
-
 yesterday = datetime.combine(datetime.today() - timedelta(days=1), datetime.min.time())
 
 default_args = {
     'owner': 'groot',
     'depends_on_past': False,
     'start_date': yesterday,
-    'color': color,
-    'year': year,
-    'month': month,
+    'execution_date': '{{ ti.xcom_pull(task_ids="push_to_xcom", key="execution_date") }}', # to depend on args_to_xcom_dag
+    'color': Variable.get("color"),
+    'year': Variable.get("year"),
+    'month': Variable.get("month"),
     'retries': 3,
     'retry_delay': 120,
 }
 
-dataset_file = f"{default_args['color']}_tripdata_{default_args['year']}-{default_args['month']:02}"
+#dataset_file = f"{default_args['color']}_tripdata_{default_args['year']}-{default_args['month']:02}"
+dataset_file = default_args['color'] + "_tripdata_" + str(default_args['year']) + "-" + str(default_args['month']).zfill(2)
 url = f"https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{default_args['color']}/{dataset_file}.csv.gz"
+
 
 def fetch_clean_save_to_parquet(url:str, filepath: str, dataset_file: str)-> str:
     """ fetches cvs file from url and reads it into pandas Dataframe"""
@@ -59,16 +52,10 @@ def fetch_clean_save_to_parquet(url:str, filepath: str, dataset_file: str)-> str
     return path2file
 
 
-def download_nyc_tlc_data(color, year, month, url, dataset_file):
+def download_nyc_tlc_data(url, dataset_file):
     """ fetches cvs file from url, cleans it and saves it to a current folder"""
     path2file = fetch_clean_save_to_parquet(url, '/opt/bitnami/airflow/tmp/', dataset_file)
     print("saved: ", path2file )
-
-# def download_nyc_tlc_data(color, year, month, url, dataset_file):
-#     """ fetches cvs file from url and saves it to a current folder"""
-#     response = requests.get(url)
-#     with open('/opt/bitnami/airflow/tmp/' + dataset_file, 'wb') as f:
-#         f.write(response.content)
 
 
 dag = DAG(
@@ -78,11 +65,10 @@ dag = DAG(
     schedule_interval=timedelta(days=7),
 )
 
-
 download_task = PythonOperator(
     task_id='download_nyc_tlc_data',
     python_callable=download_nyc_tlc_data,
-    op_args=[default_args['color'], default_args['year'], default_args['month'], url, dataset_file],
+    op_args=[url, dataset_file],
     dag=dag,
 )
 
@@ -101,4 +87,5 @@ upload_task = LocalFilesystemToGCSOperator(
     dag=dag,
 )
 
+# these 3 simultaneously
 download_task >> change_permissions_task >> upload_task

@@ -4,3 +4,5 @@ apache-airflow[gcp]
 apache-airflow[google]
 datetime
 pandas
+flask
+flask_admin
