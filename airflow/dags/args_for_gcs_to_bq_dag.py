@@ -1,19 +1,40 @@
 import os
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
 from airflow.models import Variable
 
-yesterday = datetime.combine(datetime.today() - timedelta(days=1), datetime.min.time())
-timestamp_str = yesterday.strftime('%Y-%m-%dT%H:%M:%S') # for sql timestamp 
+"""
+{
+  "projectid": "gcpzoomcamp",
+  "objectid": "green_tripdata_2020-02.parquet",
+  "datasetid": "green_taxi",
+  "datatable": "trip_data"
+}
+"""
+today = datetime.combine(datetime.today(), datetime.min.time())
+timestamp_str = today.strftime('%Y-%m-%dT%H:%M:%S') # for sql timestamp 
+
+# def trigger_dag_run_op(**kwargs):
+#     return {"dag_run_obj": "dag_run_obj_value"}
+
+def trigger_gcs_to_bq_dag(context):
+    ds = context['execution_date'].strftime('%Y-%m-%d')
+    trigger_run_task = TriggerDagRunOperator(
+        task_id = 'trigger_gcs_to_bq_dag',
+        trigger_dag_id = 'download_from_gcs_upload_to_bq',
+        dag=dag,
+        conf={ 'ds': ds },
+    )
+    trigger_run_task.execute(context)    
 
 default_args = {
     'owner': 'groot',
     'depends_on_past': False,
-    'start_date': yesterday,
+    'start_date': today,
     'retries': 0,
-    # set execution day
-    'execution_date': datetime.today().strftime('%Y-%m-%d'),
+    'on_success_callback': trigger_gcs_to_bq_dag
 }
 
 dag = DAG(
@@ -23,17 +44,12 @@ dag = DAG(
     default_args=default_args
 )
 
-# 'projectid': 'gcpzoomcamp',
-# 'objectid': 'green_tripdata_2020-01.parquet',
-# 'datasetid': 'green_taxi',
-# 'datatable': 'trip_data',
-
-dag.trigger_arguments = {
-    "projectid": "string",
-    "objectid": "string",
-    "datasetid": "string",
-    "datatable": "string"
-}
+# double-triggered ...
+# trigger_dag_run = PythonOperator(
+#     task_id='trigger_dag_run',
+#     python_callable=trigger_dag_run_op,
+#     dag=dag
+# )
 
 def parse_job_args_fn(**kwargs):
     dag_run_conf = kwargs["dag_run"].conf

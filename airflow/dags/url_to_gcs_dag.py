@@ -17,18 +17,40 @@ import os
 from datetime import datetime, timedelta
 
 # python url_to_gcs_dag.py --color 'green' --year 2020 --month 1 
-yesterday = datetime.combine(datetime.today() - timedelta(days=1), datetime.min.time())
+today = datetime.combine(datetime.today(), datetime.min.time())
+
+def call_with_desired_context(**context):
+    ds = context["dag_run"].conf["ds"]
+    context["execution_date"] = ds
+    # trigger lambda, do whatever you want with this ds
+    # which will now be the same as the one from dag_a
+
+# for when Variable has not been set yet by a diff dag
+try: 
+    color = Variable.get("color")
+except KeyError:
+    color = "green"
+
+try: 
+    year = Variable.get("year")
+except KeyError:
+    year = 2020
+
+try:
+    month = Variable.get("month")
+except KeyError:
+    month = 1
 
 default_args = {
     'owner': 'groot',
     'depends_on_past': False,
-    'start_date': yesterday,
-    'execution_date': '{{ ti.xcom_pull(task_ids="push_to_xcom", key="execution_date") }}', # to depend on args_to_xcom_dag
-    'color': Variable.get("color"),
-    'year': Variable.get("year"),
-    'month': Variable.get("month"),
-    'retries': 3,
-    'retry_delay': 120,
+    'start_date': datetime.now(), # if set to a diff value scheduler will determine when to run it even if trigger dag is triggered mannually
+    'color': color,
+    'year': year,
+    'month': month,
+    'retries': 0,
+    'execution_date': '{{ ds }}',
+    'dag_run.conf': {"external_trigger": True}
 }
 
 #dataset_file = f"{default_args['color']}_tripdata_{default_args['year']}-{default_args['month']:02}"
@@ -62,7 +84,14 @@ dag = DAG(
     'nyc_tlc_data_to_gcs_bucket',
     default_args=default_args,
     description='Downloads, modifies permissions and saves the NYC TLC data to a Google Cloud Storage bucket',
-    schedule_interval=timedelta(days=7),
+    schedule_interval=None,
+)
+
+pull_context_task = PythonOperator(
+    dag=dag,
+    task_id='pull_context',
+    python_callable=call_with_desired_context,
+    provide_context=True
 )
 
 download_task = PythonOperator(
@@ -88,4 +117,4 @@ upload_task = LocalFilesystemToGCSOperator(
 )
 
 # these 3 simultaneously
-download_task >> change_permissions_task >> upload_task
+pull_context_task >> download_task >> change_permissions_task >> upload_task
